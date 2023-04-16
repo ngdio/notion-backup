@@ -103,6 +103,9 @@ dist
 # TernJS port file
 .tern-port
 
+# macOS internal file
+.DS_Store
+
 html
 html.zip
 markdown

@@ -5,7 +5,7 @@ let axios = require('axios')
   , extract = require('extract-zip')
   , { retry } = require('async')
   , { createWriteStream } = require('fs')
-  , { mkdir, rm, readdir } = require('fs/promises')
+  , { mkdir, rm, readdir, rename } = require('fs/promises')
   , { join } = require('path')
   , notionAPI = 'https://www.notion.so/api/v3'
   , { NOTION_TOKEN, NOTION_FILE_TOKEN, NOTION_SPACE_ID } = process.env
@@ -126,6 +126,13 @@ async function extractInnerZip (dir) {
   let files = (await readdir(dir)).filter(fn => /Part-\d+\.zip$/i.test(fn));
   for (let file of files) {
     await extract(join(dir, file), { dir });
+    let extractedDir = join(dir, file.replace(/-Part-\d+\.zip$/i, ''));
+    let extractedFiles = await readdir(extractedDir);
+    for (let extractedFile of extractedFiles) {
+      await rm(join(dir, extractedFile), { force: true });
+      await rename(join(extractedDir, extractedFile), join(dir, extractedFile));
+    }
+    await rm(extractedDir, { recursive: true, force: true });
   }
 }
 
